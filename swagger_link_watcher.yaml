@@ -105,6 +105,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Удалить ссылку из отслеживания
+      operationId: DeleteTarget
+      parameters:
+        - $ref: '#/components/parameters/TargetId'
+      responses:
+        '204':
+          description: Удалено успешно
+        '404':
+          description: Ссылка не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /targets/{id}/tracking:
     patch:
@@ -205,7 +225,6 @@ components:
     CreateTargetRequest:
       type: object
       required: [url]
-      additionalProperties: false
       properties:
         url:
           type: string
@@ -223,7 +242,6 @@ components:
     UpdateTargetRequest:
       type: object
       required: [url, intervalSec]
-      additionalProperties: false
       properties:
         url:
           type: string
@@ -239,7 +257,6 @@ components:
     UpdateTrackingRequest:
       type: object
       required: [isTracking]
-      additionalProperties: false
       properties:
         isTracking:
           type: boolean
@@ -307,7 +324,6 @@ components:
         internalCode:
           type: string
           description: Описание ошибки
-          enum: [INVALID_REQUEST_DATA, URL_ALREADY_EXISTS, TARGET_NOT_FOUND, INTERNAL_ERROR]
           example: "INVALID_REQUEST_DATA"
         devMessage:
           type: string
@@ -318,9 +334,9 @@ components:
 
     UserMessage:
       type: object
-      required: [langEng, langRu]
+      required: [langEn, langRu]
       properties:
-        langEng:
+        langEn:
           type: string
           description: Сообщение для пользователя на английском
           example: "Invalid request data"
