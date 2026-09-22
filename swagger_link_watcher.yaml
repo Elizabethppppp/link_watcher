@@ -1,0 +1,354 @@
+openapi: 3.1.0
+info:
+  title: Link Watcher API
+  description: Сервис мониторинга доступности URL.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8090
+
+paths:
+  /targets:
+    post:
+      summary: Добавить ссылку для отслеживания
+      operationId: CreateTarget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTargetRequest'
+            examples:
+                value:
+                  url: "https://example.com/page"
+      responses:
+        '201':
+          description: Ссылка успешно добавлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Target'
+              example:
+                id: 1
+                url: "https://example.com/page"
+                is_tracking: true
+                interval_sec: 60
+                created_at: "2026-09-21T10:00:00Z"
+                updated_at: "2026-09-21T10:00:00Z"
+        '400':
+          description: Некорректный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "invalid url"
+        '409':
+          description: Такая ссылка уже отслеживается
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "url already exists"
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "internal error"
+
+  /targets/{id}:
+    patch:
+      summary: Изменить URL отслеживаемой ссылки
+      operationId: UpdateTarget
+      parameters:
+        - $ref: '#/components/parameters/TargetId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTargetRequest'
+            example:
+              url: "https://example.org/other-page"
+      responses:
+        '200':
+          description: Ссылка обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Target'
+              example:
+                id: 1
+                url: "https://example.org/other-page"
+                is_tracking: true
+                interval_sec: 60
+                created_at: "2026-09-21T10:00:00Z"
+                updated_at: "2026-09-21T12:30:00Z"
+        '400':
+          description: Некорректный URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "invalid url"
+        '404':
+          description: Ссылка не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "target not found"
+        '409':
+          description: Новый URL уже отслеживается другой записью
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "url already exists"
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /targets/{id}/tracking:
+    put:
+      summary: Включить или выключить отслеживание
+      operationId: UpdateTracking
+      parameters:
+        - $ref: '#/components/parameters/TargetId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTrackingRequest'
+            examples:
+              enable:
+                summary: Включить отслеживание
+                value:
+                  is_tracking: true
+              disable:
+                summary: Поставить на паузу
+                value:
+                  is_tracking: false
+      responses:
+        '200':
+          description: Состояние обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Target'
+              example:
+                id: 1
+                url: "https://example.com/page"
+                is_tracking: false
+                interval_sec: 60
+                created_at: "2026-09-21T10:00:00Z"
+                updated_at: "2026-09-21T12:45:00Z"
+        '400':
+          description: Некорректный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "is_tracking is required"
+        '404':
+          description: Ссылка не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "target not found"
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /targets/{id}/summary:
+    get:
+      summary: Сводка за сутки по конкретной ссылке
+      operationId: GetTargetSummary
+      parameters:
+        - $ref: '#/components/parameters/TargetId'
+      responses:
+        '200':
+          description: Сводка за последние 24 часа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Summary'
+              examples:
+                healthy:
+                  summary: Всё хорошо
+                  value:
+                    success_pct: 99.8
+                    avg_latency_ms: 142.3
+                flaky:
+                  summary: Часть проверок падает
+                  value:
+                    success_pct: 72.5
+                    avg_latency_ms: 380.1
+                noData:
+                  summary: Успешных проверок не было
+                  value:
+                    success_pct: 0
+                    avg_latency_ms: null
+        '404':
+          description: Ссылка не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "target not found"
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /targets/summary:
+    get:
+      summary: Сводка за сутки по всем ссылкам вместе
+      operationId: GetGlobalSummary
+      responses:
+        '200':
+          description: Общая сводка за последние 24 часа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Summary'
+              example:
+                success_pct: 95.0
+                avg_latency_ms: 180.7
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  parameters:
+    TargetId:
+      name: id
+      in: path
+      required: true
+      description: Идентификатор отслеживаемой ссылки
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+        example: 1
+
+  schemas:
+    CreateTargetRequest:
+      type: object
+      required: [url]
+      additionalProperties: false
+      properties:
+        url:
+          type: string
+          format: uri
+          maxLength: 2048
+          description: URL для отслеживания
+          example: "https://example.com/page"
+        interval_sec:
+          type: integer
+          format: int32
+          minimum: 1
+          default: 60
+          description: Интервал проверки в секундах
+
+    UpdateTargetRequest:
+      type: object
+      required: [url]
+      additionalProperties: false
+      properties:
+        url:
+          type: string
+          format: uri
+          maxLength: 2048
+          description: Новый URL
+          example: "https://example.org/other-page"
+
+    UpdateTrackingRequest:
+      type: object
+      required: [is_tracking]
+      additionalProperties: false
+      properties:
+        is_tracking:
+          type: boolean
+          description: true - проверять, false - поставить на паузу
+          example: false
+
+    Target:
+      type: object
+      required: [id, url, is_tracking, interval_sec, created_at, updated_at]
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        url:
+          type: string
+          format: uri
+          example: "https://example.com/page"
+        is_tracking:
+          type: boolean
+          example: true
+        interval_sec:
+          type: integer
+          format: int32
+          example: 60
+        created_at:
+          type: string
+          format: date-time
+          description: Момент создания
+          example: "2026-09-21T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Момент последнего изменения
+          example: "2026-09-21T12:30:00Z"
+
+    Summary:
+      type: object
+      required: [success_pct, avg_latency_ms]
+      properties:
+        success_pct:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+          description: Процент успешных проверок за последние 24 часа
+          example: 97.5
+        avg_latency_ms:
+          type: [number, "null"]
+          format: double
+          minimum: 0
+          description: Средняя задержка в миллисекундах по успешным проверкам.
+            null, если за сутки не было ни одной успешной проверки
+          example: 142.3
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          description: Описание ошибки
+          example: "url already exists"
