@@ -57,13 +57,13 @@ paths:
               $ref: '#/components/schemas/UpdateTargetRequest'
       responses:
         '200':
-          description: Ссылка обновлена
+          description: Ресурс обновлен
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Target'
         '400':
-          description: Некорректный URL
+          description: Некорректные данные
           content:
             application/json:
               schema:
