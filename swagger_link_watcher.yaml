@@ -17,9 +17,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateTargetRequest'
-            examples:
-                value:
-                  url: "https://example.com/page"
       responses:
         '201':
           description: Ссылка успешно добавлена
@@ -27,41 +24,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Target'
-              example:
-                id: 1
-                url: "https://example.com/page"
-                is_tracking: true
-                interval_sec: 60
-                created_at: "2026-09-21T10:00:00Z"
-                updated_at: "2026-09-21T10:00:00Z"
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "invalid url"
         '409':
           description: Такая ссылка уже отслеживается
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "url already exists"
         '500':
           description: Внутренняя ошибка сервера
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "internal error"
 
   /targets/{id}:
-    patch:
-      summary: Изменить URL отслеживаемой ссылки
+    put:
+      summary: Изменить ресурс
       operationId: UpdateTarget
       parameters:
         - $ref: '#/components/parameters/TargetId'
@@ -71,8 +55,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateTargetRequest'
-            example:
-              url: "https://example.org/other-page"
       responses:
         '200':
           description: Ссылка обновлена
@@ -80,37 +62,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Target'
-              example:
-                id: 1
-                url: "https://example.org/other-page"
-                is_tracking: true
-                interval_sec: 60
-                created_at: "2026-09-21T10:00:00Z"
-                updated_at: "2026-09-21T12:30:00Z"
         '400':
           description: Некорректный URL
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "invalid url"
         '404':
           description: Ссылка не найдена
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "target not found"
         '409':
           description: Новый URL уже отслеживается другой записью
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "url already exists"
         '500':
           description: Внутренняя ошибка сервера
           content:
@@ -119,7 +88,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 
   /targets/{id}/tracking:
-    put:
+    patch:
       summary: Включить или выключить отслеживание
       operationId: UpdateTracking
       parameters:
@@ -130,15 +99,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateTrackingRequest'
-            examples:
-              enable:
-                summary: Включить отслеживание
-                value:
-                  is_tracking: true
-              disable:
-                summary: Поставить на паузу
-                value:
-                  is_tracking: false
       responses:
         '200':
           description: Состояние обновлено
@@ -146,29 +106,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Target'
-              example:
-                id: 1
-                url: "https://example.com/page"
-                is_tracking: false
-                interval_sec: 60
-                created_at: "2026-09-21T10:00:00Z"
-                updated_at: "2026-09-21T12:45:00Z"
         '400':
           description: Некорректный запрос
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "is_tracking is required"
         '404':
           description: Ссылка не найдена
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "target not found"
         '500':
           description: Внутренняя ошибка сервера
           content:
@@ -189,30 +138,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Summary'
-              examples:
-                healthy:
-                  summary: Всё хорошо
-                  value:
-                    success_pct: 99.8
-                    avg_latency_ms: 142.3
-                flaky:
-                  summary: Часть проверок падает
-                  value:
-                    success_pct: 72.5
-                    avg_latency_ms: 380.1
-                noData:
-                  summary: Успешных проверок не было
-                  value:
-                    success_pct: 0
-                    avg_latency_ms: null
         '404':
           description: Ссылка не найдена
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "target not found"
         '500':
           description: Внутренняя ошибка сервера
           content:
@@ -231,9 +162,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Summary'
-              example:
-                success_pct: 95.0
-                avg_latency_ms: 180.7
         '500':
           description: Внутренняя ошибка сервера
           content:
@@ -275,15 +203,19 @@ components:
 
     UpdateTargetRequest:
       type: object
-      required: [url]
+      required: [url, interval_sec]
       additionalProperties: false
       properties:
         url:
           type: string
           format: uri
           maxLength: 2048
-          description: Новый URL
-          example: "https://example.org/other-page"
+          example: "https://example.com/page"
+        interval_sec:
+          type: integer
+          format: int32
+          minimum: 1
+          example: 30
 
     UpdateTrackingRequest:
       type: object
