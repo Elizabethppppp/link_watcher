@@ -194,7 +194,7 @@ components:
           maxLength: 2048
           description: URL для отслеживания
           example: "https://example.com/page"
-        interval_sec:
+        intervalSec:
           type: integer
           format: int32
           minimum: 1
@@ -203,7 +203,7 @@ components:
 
     UpdateTargetRequest:
       type: object
-      required: [url, interval_sec]
+      required: [url, intervalSec]
       additionalProperties: false
       properties:
         url:
@@ -211,7 +211,7 @@ components:
           format: uri
           maxLength: 2048
           example: "https://example.com/page"
-        interval_sec:
+        intervalSec:
           type: integer
           format: int32
           minimum: 1
@@ -219,17 +219,17 @@ components:
 
     UpdateTrackingRequest:
       type: object
-      required: [is_tracking]
+      required: [isTracking]
       additionalProperties: false
       properties:
-        is_tracking:
+        isTracking:
           type: boolean
           description: true - проверять, false - поставить на паузу
           example: false
 
     Target:
       type: object
-      required: [id, url, is_tracking, interval_sec, created_at, updated_at]
+      required: [id, url, isTracking, intervalSec, createdAt, updatedAt]
       properties:
         id:
           type: integer
@@ -239,19 +239,19 @@ components:
           type: string
           format: uri
           example: "https://example.com/page"
-        is_tracking:
+        isTracking:
           type: boolean
           example: true
-        interval_sec:
+        intervalSec:
           type: integer
           format: int32
           example: 60
-        created_at:
+        createdAt:
           type: string
           format: date-time
           description: Момент создания
           example: "2026-09-21T10:00:00Z"
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
           description: Момент последнего изменения
@@ -259,16 +259,16 @@ components:
 
     Summary:
       type: object
-      required: [success_pct, avg_latency_ms]
+      required: [successPct, avgLatencyMs]
       properties:
-        success_pct:
+        successPct:
           type: number
           format: double
           minimum: 0
           maximum: 100
           description: Процент успешных проверок за последние 24 часа
           example: 97.5
-        avg_latency_ms:
+        avgLatencyMs:
           type: [number, "null"]
           format: double
           minimum: 0
@@ -278,9 +278,34 @@ components:
 
     ErrorResponse:
       type: object
-      required: [error]
+      required: [code, internalCode, devMessage, userMessage]
       properties:
-        error:
+        code:
+          type: string
+          description: Класс ошибки
+          enum: [BAD_REQUEST, NOT_FOUND, CONFLICT, INTERNAL]
+          example: "BAD_REQUEST"
+        internalCode:
           type: string
           description: Описание ошибки
-          example: "url already exists"
+          enum: [INVALID_REQUEST_DATA, URL_ALREADY_EXISTS, TARGET_NOT_FOUND, INTERNAL_ERROR]
+          example: "INVALID_REQUEST_DATA"
+        devMessage:
+          type: string
+          description: Сообщение для разработчика
+          example: "Internal Server Error"
+        userMessage:
+          $ref: '#/components/schemas/UserMessage'
+
+    UserMessage:
+      type: object
+      required: [langEng, langRu]
+      properties:
+        langEng:
+          type: string
+          description: Сообщение для пользователя на английском
+          example: "Invalid request data"
+        langRu:
+          type: string
+          description: Сообщение для пользователя на русском
+          example: "Некорректные данные для запроса"
