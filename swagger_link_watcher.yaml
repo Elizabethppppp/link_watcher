@@ -141,10 +141,6 @@ paths:
       responses:
         '200':
           description: Состояние обновлено
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Target'
         '400':
           description: Некорректный запрос
           content:
