@@ -1,5 +1,11 @@
 package logger
 
+import (
+	"log/slog"
+	"os"
+	"strings"
+)
+
 type Config struct {
 	Level  string
 	Format string

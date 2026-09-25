@@ -1,5 +1,12 @@
 package config
 
+import (
+	"fmt"
+	"os"
+
+	"gopkg.in/yaml.v3"
+)
+
 type DB struct {
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
