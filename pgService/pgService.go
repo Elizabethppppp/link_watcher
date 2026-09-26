@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"link_watcher/model"
 	"link_watcher/serviceErrors"
 
 	"github.com/jackc/pgx/v5/pgconn"
@@ -19,10 +20,10 @@ func NewPgService(db *sql.DB) *PgService {
 	}
 }
 
-func (pg *PgService) Insert(ctx context.Context, url string, intervalSec int64) (Target, error) {
+func (pg *PgService) Insert(ctx context.Context, url string, intervalSec int64) (model.Target, error) {
 	query := `INSERT INTO target (url, interval_sec) VALUES ($1, $2) RETURNING id, url, is_tracking ,interval_sec, created_at, updated_at`
 
-	var target Target
+	var target model.Target
 	err := pg.db.QueryRowContext(ctx, query, url, intervalSec).Scan(
 		&target.Id,
 		&target.Url,
@@ -33,7 +34,7 @@ func (pg *PgService) Insert(ctx context.Context, url string, intervalSec int64) 
 	if err != nil {
 		var pgerr *pgconn.PgError
 		if errors.As(err, &pgerr) && pgerr.Code == "23505" {
-			return Target{}, serviceErrors.ErrConflict
+			return model.Target{}, serviceErrors.ErrConflict
 		}
 	}
 	return target, nil
