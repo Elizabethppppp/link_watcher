@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"link_watcher/config"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func Connect(cfg config.DB) (*sql.DB, error) {

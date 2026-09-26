@@ -1,6 +1,10 @@
 package main
 
 import (
+	"database/sql"
+	"link_watcher/config"
+	"link_watcher/db"
+	"link_watcher/logger"
 	"net/http"
 )
 
@@ -45,11 +49,11 @@ func main() {
 
 	logger.Info("Connection successfully established", "host", cfg.DB.Host, "port", cfg.DB.Port)
 
+	app := NewLink(dbConn)
+
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello World"))
-	})
+	mux.HandleFunc("/targets", app.CreateTarget)
 
 	if err := http.ListenAndServe(":8090", mux); err != nil {
 		logger.Fatal("Server failed to start", "error", err.Error())

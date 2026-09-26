@@ -2,6 +2,8 @@ module link_watcher
 
 go 1.26.5
 
+require gopkg.in/yaml.v3 v3.0.1
+
 require (
 	github.com/golang-migrate/migrate v3.5.4+incompatible // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
