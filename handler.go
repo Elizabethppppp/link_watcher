@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"link_watcher/logger"
 	"net/http"
+	"net/url"
 	"strings"
+	"time"
 )
 
 type CreateTargetRequest struct {
@@ -14,12 +16,12 @@ type CreateTargetRequest struct {
 }
 
 type Target struct {
-	Id         string `json:"id"`
-	Url        string `json:"url"`
-	IsTracking bool   `json:"is_tracking"`
-	IntervaSec int    `json:"interva_sec"`
-	CreatedAt  string `json:"created_at"`
-	UpdatedAt  string `json:"updated_at"`
+	Id          string    `json:"id"`
+	Url         string    `json:"url"`
+	IsTracking  bool      `json:"is_tracking"`
+	IntervalSec int64     `json:"interva_sec"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 func (l *Link) CreateTarget(w http.ResponseWriter, r *http.Request) {
@@ -44,6 +46,13 @@ func (l *Link) CreateTarget(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	parsed, errParse := url.Parse(req.Url)
+	if errParse != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("url is invalid"))
+		return
+	}
+
 	if req.Interval == 0 {
 		req.Interval = 60
 	}
@@ -62,7 +71,7 @@ func (l *Link) CreateTarget(w http.ResponseWriter, r *http.Request) {
 		&tar.Id,
 		&tar.Url,
 		&tar.IsTracking,
-		&tar.IntervaSec,
+		&tar.IntervalSec,
 		&tar.CreatedAt,
 		&tar.UpdatedAt,
 	)
