@@ -5,6 +5,7 @@ import (
 	"link_watcher/config"
 	"link_watcher/db"
 	"link_watcher/logger"
+	"link_watcher/pgService"
 	"net/http"
 )
 
@@ -49,11 +50,11 @@ func main() {
 
 	logger.Info("Connection successfully established", "host", cfg.DB.Host, "port", cfg.DB.Port)
 
-	app := NewLink(dbConn)
+	pg := pgService.NewPgService(dbConn)
+	svc := NewReduceService(pg)
+	tp := NewTransport(svc)
 
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/targets", app.CreateTarget)
+	handler := tp.Handler()
 
 	if err := http.ListenAndServe(":8090", mux); err != nil {
 		logger.Fatal("Server failed to start", "error", err.Error())
