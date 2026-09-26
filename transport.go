@@ -6,20 +6,20 @@ import (
 )
 
 type Transport struct {
-	tr           *ReduceService
+	red           *ReduceService
 	CreateTargets http.Handler
 }
 
-func NewTransport(tr *ReduceService) *Transport {
+func NewTransport(red *ReduceService) *Transport {
 	return &Transport{
-		tr: tr,
+		red: red,
 	}
 }
 
 func (t *Transport) Handler() *http.ServeMux {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/targets", middleware.LoggerMiddleware(t.CreateTarget))
+	mux.Handle("/targets", middleware.LoggerMiddleware(http.HandlerFunc(t.CreateTarget)))
 
 	return mux
 }

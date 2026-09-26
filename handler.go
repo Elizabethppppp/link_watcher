@@ -1,17 +1,16 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
-	"link_watcher/logger"
+	"errors"
+	"link_watcher/serviceErrors"
 	"net/http"
 	"net/url"
-	"strings"
 )
 
 type CreateTargetRequest struct {
-	Url      string `json:"url"`
-	Interval int    `json:"interval"`
+	Url         string `json:"url"`
+	IntervalSec int64  `json:"interval"`
 }
 
 func (t *Transport) CreateTarget(w http.ResponseWriter, r *http.Request) {
@@ -43,41 +42,33 @@ func (t *Transport) CreateTarget(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Interval == 0 {
-		req.Interval = 60
+	if req.IntervalSec == 0 {
+		req.IntervalSec = 60
 	}
-	if req.Interval < 0 {
+	if req.IntervalSec < 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("interval is not less than 0"))
 		return
 	}
 
-	query := `INSERT INTO target (url, interval_sec) VALUES ($1, $2) RETURNING id, url, is_tracking ,interval_sec, created_at, updated_at`
-
-	var tar Target
-	ctx := context.Background()
-
-	err := l.DB.QueryRowContext(ctx, query, req.Url, req.Interval).Scan(
-		&tar.Id,
-		&tar.Url,
-		&tar.IsTracking,
-		&tar.IntervalSec,
-		&tar.CreatedAt,
-		&tar.UpdatedAt,
-	)
+	target, err := t.red.Create(r.Context(), req.Url, req.IntervalSec)
 	if err != nil {
-		if strings.Contains(err.Error(), "23505") || strings.Contains(err.Error(), "unique") {
+		if errors.Is(err, serviceErrors.ErrConflict) {
 			w.WriteHeader(http.StatusConflict)
-			w.Write([]byte("Target with this URL already exists"))
+			w.Write([]byte(err.Error()))
 			return
 		}
-		logger.Error("DB insert error", "error", err.Error(), "url", req.Url, "interval", req.Interval)
+		if errors.Is(err, serviceErrors.ErrInternal) {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Internal Server Error"))
+		w.Write([]byte(err.Error()))
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(tar)
+	json.NewEncoder(w).Encode(target)
 }

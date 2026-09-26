@@ -69,7 +69,6 @@ func LoggerMiddleware(next http.Handler) http.Handler {
 
 		rw := NewResponseLog(w)
 
-		// Логируем ответ даже при панике в хендлере.
 		defer func() {
 			if rec := recover(); rec != nil {
 				log.Printf("panic in handler: %v", rec)
