@@ -1,24 +1,12 @@
 package main
 
 import (
-	"database/sql"
 	"link_watcher/config"
 	"link_watcher/db"
 	"link_watcher/logger"
 	"link_watcher/pgService"
 	"net/http"
 )
-
-type Link struct {
-	DB *sql.DB
-}
-
-func NewLink(db *sql.DB) *Link {
-	return &Link{
-		DB: db,
-	}
-
-}
 
 func main() {
 
@@ -56,7 +44,7 @@ func main() {
 
 	handler := tp.Handler()
 
-	if err := http.ListenAndServe(":8090", mux); err != nil {
+	if err := http.ListenAndServe(":8090", handler); err != nil {
 		logger.Fatal("Server failed to start", "error", err.Error())
 	}
 

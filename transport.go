@@ -1,11 +1,13 @@
 package main
 
 import (
+	"link_watcher/middleware"
 	"net/http"
 )
 
 type Transport struct {
-	tr *ReduceService
+	tr           *ReduceService
+	CreateTargets http.Handler
 }
 
 func NewTransport(tr *ReduceService) *Transport {
@@ -17,5 +19,7 @@ func NewTransport(tr *ReduceService) *Transport {
 func (t *Transport) Handler() *http.ServeMux {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/targets", t.CreateTarget)
+	mux.HandleFunc("/targets", middleware.LoggerMiddleware(t.CreateTarget))
+
+	return mux
 }
