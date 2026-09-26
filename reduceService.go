@@ -1,4 +1,4 @@
-package reduceService
+package main
 
 import (
 	"context"
