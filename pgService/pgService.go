@@ -93,3 +93,19 @@ func (pg *PgService) Update(ctx context.Context, id, url string, intervalSec int
 	}
 	return target, nil
 }
+
+func (pg *PgService) Delete(ctx context.Context, id string) error {
+	query := `DELETE FROM target WHERE id = $1`
+	result, err := pg.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return serviceErrors.ErrInternal
+	}
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return serviceErrors.ErrInternal
+	}
+	if affected == 0 {
+		return serviceErrors.ErrNotFound
+	}
+	return nil
+}

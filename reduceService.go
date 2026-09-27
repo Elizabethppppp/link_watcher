@@ -9,6 +9,7 @@ type TargetRepository interface {
 	Insert(ctx context.Context, url string, intervalSec int64) (model.Target, error)
 	GetAllTargets(ctx context.Context) ([]model.Target, error)
 	Update(ctx context.Context, id, url string, intervalSec int64) (model.Target, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type ReduceService struct {
@@ -44,4 +45,12 @@ func (service *ReduceService) UpdateTargetId(ctx context.Context, id, url string
 		return model.Target{}, err
 	}
 	return target, nil
+}
+
+func (service *ReduceService) DeleteTargetId(ctx context.Context, id string) error {
+	err := service.repo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+	return nil
 }

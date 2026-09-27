@@ -63,11 +63,6 @@ func (t *Transport) CreateTarget(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(err.Error()))
 			return
 		}
-		if errors.Is(err, serviceErrors.ErrInternal) {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
@@ -142,7 +137,7 @@ func (t *Transport) UpdateTarget(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(err.Error()))
 			return
 		}
-		if errors.Is(err, serviceErrors.ErrInternal) {
+		if errors.Is(err, serviceErrors.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte(err.Error()))
 			return
@@ -156,4 +151,27 @@ func (t *Transport) UpdateTarget(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(target)
 
+}
+
+func (t *Transport) DeleteTarget(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("id is empty"))
+		return
+	}
+
+	err := t.red.DeleteTargetId(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, serviceErrors.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
