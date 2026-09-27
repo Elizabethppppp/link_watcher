@@ -6,8 +6,7 @@ import (
 	"link_watcher/serviceErrors"
 	"net/http"
 	"net/url"
-
-	"github.com/google/uuid"
+	"strconv"
 )
 
 type CreateTargetRequest struct {
@@ -94,12 +93,24 @@ func (t *Transport) GetTarget(w http.ResponseWriter, r *http.Request) {
 
 func (t *Transport) UpdateTarget(w http.ResponseWriter, r *http.Request) {
 
-	id := r.PathValue("id")
-	if id == "" {
+	idText := r.PathValue("id")
+	if idText == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("id is empty"))
 		return
 	}
+	id, err := strconv.ParseInt(idText, 10, 64)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	if id <= 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("id is invalid"))
+		return
+	}
+
 	var req UpdateTargetRequest
 
 	if errDecode := json.NewDecoder(r.Body).Decode(&req); errDecode != nil {
@@ -160,15 +171,26 @@ func (t *Transport) UpdateTarget(w http.ResponseWriter, r *http.Request) {
 }
 
 func (t *Transport) DeleteTarget(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	if id == "" {
+	idText := r.PathValue("id")
+	if idText == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("id is empty"))
 		return
 	}
-
-	err := t.red.DeleteTargetId(r.Context(), id)
+	id, err := strconv.ParseInt(idText, 10, 64)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	if id <= 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("id is invalid"))
+		return
+	}
+
+	err1 := t.red.DeleteTargetId(r.Context(), id)
+	if err1 != nil {
 		if errors.Is(err, serviceErrors.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte(err.Error()))
@@ -183,17 +205,24 @@ func (t *Transport) DeleteTarget(w http.ResponseWriter, r *http.Request) {
 }
 
 func (t *Transport) UpdateTracking(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	if id == "" {
+	idText := r.PathValue("id")
+	if idText == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("id is empty"))
 		return
 	}
-	if _, err := uuid.Parse(id); err != nil {
+	id, err := strconv.ParseInt(idText, 10, 64)
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
 	}
+	if id <= 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("id is invalid"))
+		return
+	}
+
 	var req TrackingTargetRequest
 	if errDecode := json.NewDecoder(r.Body).Decode(&req); errDecode != nil {
 		w.WriteHeader(http.StatusBadRequest)

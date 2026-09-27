@@ -71,7 +71,7 @@ func (pg *PgService) GetAllTargets(ctx context.Context) ([]model.Target, error) 
 	return targets, nil
 }
 
-func (pg *PgService) Update(ctx context.Context, id, url string, intervalSec int64) (model.Target, error) {
+func (pg *PgService) Update(ctx context.Context, id int64, url string, intervalSec int64) (model.Target, error) {
 	query := `UPDATE target SET url = $1, interval_sec = $2,updated_at = NOW() WHERE id = $3 RETURNING id, url, is_tracking, interval_sec, created_at, updated_at`
 	var target model.Target
 	err := pg.db.QueryRowContext(ctx, query, url, intervalSec, id).Scan(
@@ -95,7 +95,7 @@ func (pg *PgService) Update(ctx context.Context, id, url string, intervalSec int
 	return target, nil
 }
 
-func (pg *PgService) Delete(ctx context.Context, id string) error {
+func (pg *PgService) Delete(ctx context.Context, id int64) error {
 	query := `DELETE FROM target WHERE id = $1`
 	result, err := pg.db.ExecContext(ctx, query, id)
 	if err != nil {
@@ -111,7 +111,7 @@ func (pg *PgService) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (pg *PgService) UpdateActive(ctx context.Context, id string, isActive bool) (model.Target, error) {
+func (pg *PgService) UpdateActive(ctx context.Context, id int64, isActive bool) (model.Target, error) {
 	query := `UPDATE target SET is_tracking = $1,updated_at=NOW() WHERE id = $2 RETURNING id, url, is_tracking, interval_sec, created_at, updated_at`
 	var target model.Target
 	err := pg.db.QueryRowContext(ctx, query, isActive, id).Scan(

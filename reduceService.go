@@ -8,9 +8,9 @@ import (
 type TargetRepository interface {
 	Insert(ctx context.Context, url string, intervalSec int64) (model.Target, error)
 	GetAllTargets(ctx context.Context) ([]model.Target, error)
-	Update(ctx context.Context, id, url string, intervalSec int64) (model.Target, error)
-	Delete(ctx context.Context, id string) error
-	UpdateActive(ctx context.Context, id string, isActive bool) (model.Target, error)
+	Update(ctx context.Context, id int64, url string, intervalSec int64) (model.Target, error)
+	Delete(ctx context.Context, id int64) error
+	UpdateActive(ctx context.Context, id int64, isActive bool) (model.Target, error)
 }
 
 type ReduceService struct {
@@ -39,7 +39,7 @@ func (service *ReduceService) GetTargets(ctx context.Context) ([]model.Target, e
 	return targets, nil
 }
 
-func (service *ReduceService) UpdateTargetId(ctx context.Context, id, url string, intervalSec int64) (model.Target, error) {
+func (service *ReduceService) UpdateTargetId(ctx context.Context, id int64, url string, intervalSec int64) (model.Target, error) {
 	target, err := service.repo.Update(ctx, id, url, intervalSec)
 	if err != nil {
 		return model.Target{}, err
@@ -47,7 +47,7 @@ func (service *ReduceService) UpdateTargetId(ctx context.Context, id, url string
 	return target, nil
 }
 
-func (service *ReduceService) DeleteTargetId(ctx context.Context, id string) error {
+func (service *ReduceService) DeleteTargetId(ctx context.Context, id int64) error {
 	err := service.repo.Delete(ctx, id)
 	if err != nil {
 		return err
@@ -55,7 +55,7 @@ func (service *ReduceService) DeleteTargetId(ctx context.Context, id string) err
 	return nil
 }
 
-func (service *ReduceService) UpdateActiveTarget(ctx context.Context, id string, isActive bool) (model.Target, error) {
+func (service *ReduceService) UpdateActiveTarget(ctx context.Context, id int64, isActive bool) (model.Target, error) {
 	target, err := service.repo.UpdateActive(ctx, id, isActive)
 	if err != nil {
 		return model.Target{}, err

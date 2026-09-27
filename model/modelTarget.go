@@ -3,7 +3,7 @@ package model
 import "time"
 
 type Target struct {
-	Id          string    `json:"id"`
+	Id          int64     `json:"id"`
 	Url         string    `json:"url"`
 	IsTracking  bool      `json:"is_tracking"`
 	IntervalSec int64     `json:"interva_sec"`
