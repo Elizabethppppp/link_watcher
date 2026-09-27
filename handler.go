@@ -6,6 +6,8 @@ import (
 	"link_watcher/serviceErrors"
 	"net/http"
 	"net/url"
+
+	"github.com/google/uuid"
 )
 
 type CreateTargetRequest struct {
@@ -19,7 +21,7 @@ type UpdateTargetRequest struct {
 }
 
 type TrackingTargetRequest struct {
-	IsActive bool `json:"isActive"`
+	IsTracking bool `json:"isTracking"`
 }
 
 func (t *Transport) CreateTarget(w http.ResponseWriter, r *http.Request) {
@@ -187,6 +189,11 @@ func (t *Transport) UpdateTracking(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("id is empty"))
 		return
 	}
+	if _, err := uuid.Parse(id); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
 	var req TrackingTargetRequest
 	if errDecode := json.NewDecoder(r.Body).Decode(&req); errDecode != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -194,7 +201,7 @@ func (t *Transport) UpdateTracking(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	target, err := t.red.UpdateActiveTarget(r.Context(), id, req.IsActive)
+	target, err := t.red.UpdateActiveTarget(r.Context(), id, req.IsTracking)
 	if err != nil {
 		if errors.Is(err, serviceErrors.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)

@@ -125,10 +125,6 @@ func (pg *PgService) UpdateActive(ctx context.Context, id string, isActive bool)
 		if errors.Is(err, pgx.ErrNoRows) {
 			return model.Target{}, serviceErrors.ErrNotFound
 		}
-		var pgerr *pgconn.PgError
-		if errors.As(err, &pgerr) && pgerr.Code == pgerrcode.InvalidTextRepresentation {
-			return model.Target{}, serviceErrors.ErrConflict
-		}
 		return model.Target{}, serviceErrors.ErrInternal
 	}
 	return target, nil
