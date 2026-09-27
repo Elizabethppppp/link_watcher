@@ -7,6 +7,7 @@ import (
 	"link_watcher/model"
 	"link_watcher/serviceErrors"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
@@ -36,6 +37,7 @@ func (pg *PgService) Insert(ctx context.Context, url string, intervalSec int64) 
 		if errors.As(err, &pgerr) && pgerr.Code == "23505" {
 			return model.Target{}, serviceErrors.ErrConflict
 		}
+		return model.Target{}, serviceErrors.ErrInternal
 	}
 	return target, nil
 }
@@ -66,4 +68,28 @@ func (pg *PgService) GetAllTargets(ctx context.Context) ([]model.Target, error) 
 		return nil, serviceErrors.ErrInternal
 	}
 	return targets, nil
+}
+
+func (pg *PgService) Update(ctx context.Context, id, url string, intervalSec int64) (model.Target, error) {
+	query := `UPDATE target SET url = $1, interval_sec = $2,updated_at = NOW() WHERE id = $3 RETURNING id, url, is_tracking, interval_sec, created_at, updated_at`
+	var target model.Target
+	err := pg.db.QueryRowContext(ctx, query, url, intervalSec, id).Scan(
+		&target.Id,
+		&target.Url,
+		&target.IsTracking,
+		&target.IntervalSec,
+		&target.CreatedAt,
+		&target.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return model.Target{}, serviceErrors.ErrNotFound
+		}
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return model.Target{}, serviceErrors.ErrConflict
+		}
+		return model.Target{}, serviceErrors.ErrInternal
+	}
+	return target, nil
 }
