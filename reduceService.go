@@ -10,6 +10,7 @@ type TargetRepository interface {
 	GetAllTargets(ctx context.Context) ([]model.Target, error)
 	Update(ctx context.Context, id, url string, intervalSec int64) (model.Target, error)
 	Delete(ctx context.Context, id string) error
+	UpdateActive(ctx context.Context, id string, isActive bool) (model.Target, error)
 }
 
 type ReduceService struct {
@@ -23,7 +24,6 @@ func NewReduceService(repo TargetRepository) *ReduceService {
 }
 
 func (service *ReduceService) Create(ctx context.Context, url string, intervalSec int64) (model.Target, error) {
-
 	tar, err := service.repo.Insert(ctx, url, intervalSec)
 	if err != nil {
 		return model.Target{}, err
@@ -53,4 +53,12 @@ func (service *ReduceService) DeleteTargetId(ctx context.Context, id string) err
 		return err
 	}
 	return nil
+}
+
+func (service *ReduceService) UpdateActiveTarget(ctx context.Context, id string, isActive bool) (model.Target, error) {
+	target, err := service.repo.UpdateActive(ctx, id, isActive)
+	if err != nil {
+		return model.Target{}, err
+	}
+	return target, nil
 }

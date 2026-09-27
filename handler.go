@@ -18,6 +18,10 @@ type UpdateTargetRequest struct {
 	IntervalSec int64  `json:"intervalSec"`
 }
 
+type TrackingTargetRequest struct {
+	IsActive bool `json:"isActive"`
+}
+
 func (t *Transport) CreateTarget(w http.ResponseWriter, r *http.Request) {
 
 	var req CreateTargetRequest
@@ -174,4 +178,35 @@ func (t *Transport) DeleteTarget(w http.ResponseWriter, r *http.Request) {
 
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (t *Transport) UpdateTracking(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("id is empty"))
+		return
+	}
+	var req TrackingTargetRequest
+	if errDecode := json.NewDecoder(r.Body).Decode(&req); errDecode != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(errDecode.Error()))
+		return
+	}
+
+	target, err := t.red.UpdateActiveTarget(r.Context(), id, req.IsActive)
+	if err != nil {
+		if errors.Is(err, serviceErrors.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(target)
+
 }

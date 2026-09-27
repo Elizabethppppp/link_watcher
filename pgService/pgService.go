@@ -7,6 +7,7 @@ import (
 	"link_watcher/model"
 	"link_watcher/serviceErrors"
 
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -34,7 +35,7 @@ func (pg *PgService) Insert(ctx context.Context, url string, intervalSec int64) 
 		&target.UpdatedAt)
 	if err != nil {
 		var pgerr *pgconn.PgError
-		if errors.As(err, &pgerr) && pgerr.Code == "23505" {
+		if errors.As(err, &pgerr) && pgerr.Code == pgerrcode.UniqueViolation {
 			return model.Target{}, serviceErrors.ErrConflict
 		}
 		return model.Target{}, serviceErrors.ErrInternal
@@ -85,8 +86,8 @@ func (pg *PgService) Update(ctx context.Context, id, url string, intervalSec int
 		if errors.Is(err, pgx.ErrNoRows) {
 			return model.Target{}, serviceErrors.ErrNotFound
 		}
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+		var pgerr *pgconn.PgError
+		if errors.As(err, &pgerr) && pgerr.Code == pgerrcode.UniqueViolation {
 			return model.Target{}, serviceErrors.ErrConflict
 		}
 		return model.Target{}, serviceErrors.ErrInternal
@@ -108,4 +109,27 @@ func (pg *PgService) Delete(ctx context.Context, id string) error {
 		return serviceErrors.ErrNotFound
 	}
 	return nil
+}
+
+func (pg *PgService) UpdateActive(ctx context.Context, id string, isActive bool) (model.Target, error) {
+	query := `UPDATE target SET is_tracking = $1,updated_at=NOW() WHERE id = $2 RETURNING id, url, is_tracking, interval_sec, created_at, updated_at`
+	var target model.Target
+	err := pg.db.QueryRowContext(ctx, query, isActive, id).Scan(
+		&target.Id,
+		&target.Url,
+		&target.IsTracking,
+		&target.IntervalSec,
+		&target.CreatedAt,
+		&target.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return model.Target{}, serviceErrors.ErrNotFound
+		}
+		var pgerr *pgconn.PgError
+		if errors.As(err, &pgerr) && pgerr.Code == pgerrcode.InvalidTextRepresentation {
+			return model.Target{}, serviceErrors.ErrConflict
+		}
+		return model.Target{}, serviceErrors.ErrInternal
+	}
+	return target, nil
 }
