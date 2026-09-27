@@ -39,3 +39,31 @@ func (pg *PgService) Insert(ctx context.Context, url string, intervalSec int64) 
 	}
 	return target, nil
 }
+
+func (pg *PgService) GetAllTargets(ctx context.Context) ([]model.Target, error) {
+	query := `SELECT * FROM target`
+	rows, err := pg.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, serviceErrors.ErrInternal
+	}
+	defer rows.Close()
+	targets := make([]model.Target, 0)
+	for rows.Next() {
+		var target model.Target
+		err := rows.Scan(
+			&target.Id,
+			&target.Url,
+			&target.IsTracking,
+			&target.IntervalSec,
+			&target.CreatedAt,
+			&target.UpdatedAt)
+		if err != nil {
+			return nil, serviceErrors.ErrInternal
+		}
+		targets = append(targets, target)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, serviceErrors.ErrInternal
+	}
+	return targets, nil
+}

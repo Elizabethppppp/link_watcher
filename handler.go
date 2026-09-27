@@ -72,3 +72,16 @@ func (t *Transport) CreateTarget(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(target)
 }
+
+func (t *Transport) GetTarget(w http.ResponseWriter, r *http.Request) {
+	target, err := t.red.GetTargets(r.Context())
+	if errors.Is(err, serviceErrors.ErrInternal) {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(target)
+}

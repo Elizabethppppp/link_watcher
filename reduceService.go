@@ -7,6 +7,7 @@ import (
 
 type TargetRepository interface {
 	Insert(ctx context.Context, url string, intervalSec int64) (model.Target, error)
+	GetAllTargets(ctx context.Context) ([]model.Target, error)
 }
 
 type ReduceService struct {
@@ -26,4 +27,12 @@ func (service *ReduceService) Create(ctx context.Context, url string, intervalSe
 		return model.Target{}, err
 	}
 	return tar, nil
+}
+
+func (service *ReduceService) GetTargets(ctx context.Context) ([]model.Target, error) {
+	targets, err := service.repo.GetAllTargets(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return targets, nil
 }

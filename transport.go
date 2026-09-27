@@ -19,7 +19,8 @@ func NewTransport(red *ReduceService) *Transport {
 func (t *Transport) Handler() *http.ServeMux {
 	mux := http.NewServeMux()
 
-	mux.Handle("/targets", middleware.LoggerMiddleware(http.HandlerFunc(t.CreateTarget)))
+	mux.Handle("POST /targets", middleware.LoggerMiddleware(http.HandlerFunc(t.CreateTarget)))
+	mux.Handle("GET /targets", middleware.LoggerMiddleware(http.HandlerFunc(t.GetTarget)))
 
 	return mux
 }
