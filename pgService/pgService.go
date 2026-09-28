@@ -44,7 +44,7 @@ func (pg *PgService) Insert(ctx context.Context, url string, intervalSec int64) 
 }
 
 func (pg *PgService) GetAllTargets(ctx context.Context) ([]model.Target, error) {
-	query := `SELECT * FROM target`
+	query := `SELECT id, url, is_tracking ,interval_sec, created_at, updated_at FROM target`
 	rows, err := pg.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, serviceErrors.ErrInternal
