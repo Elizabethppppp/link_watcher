@@ -9,19 +9,14 @@ import (
 	"strconv"
 )
 
-type CreateTargetRequest struct {
-	Url         string `json:"url"`
-	IntervalSec int64  `json:"intervalSec"`
-}
-
-type UpdateTargetRequest struct {
+type TargetRequest struct {
 	Url         string `json:"url"`
 	IntervalSec int64  `json:"intervalSec"`
 }
 
 func (t *Transport) CreateTarget(w http.ResponseWriter, r *http.Request) {
 
-	var req CreateTargetRequest
+	var req TargetRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrInvalidJSON)
@@ -88,7 +83,7 @@ func (t *Transport) UpdateTarget(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req UpdateTargetRequest
+	var req TargetRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrInvalidJSON)
