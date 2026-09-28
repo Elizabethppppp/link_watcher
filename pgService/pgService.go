@@ -111,10 +111,10 @@ func (pg *PgService) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (pg *PgService) UpdateActive(ctx context.Context, id int64, isActive bool) (model.Target, error) {
-	query := `UPDATE target SET is_tracking = $1,updated_at=NOW() WHERE id = $2 RETURNING id, url, is_tracking, interval_sec, created_at, updated_at`
+func (pg *PgService) UpdateActive(ctx context.Context, id int64) (model.Target, error) {
+	query := `UPDATE target SET is_tracking = NOT is_tracking,updated_at=NOW() WHERE id = $1 RETURNING id, url, is_tracking, interval_sec, created_at, updated_at`
 	var target model.Target
-	err := pg.db.QueryRowContext(ctx, query, isActive, id).Scan(
+	err := pg.db.QueryRowContext(ctx, query, id).Scan(
 		&target.Id,
 		&target.Url,
 		&target.IsTracking,

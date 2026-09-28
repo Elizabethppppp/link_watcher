@@ -19,10 +19,6 @@ type UpdateTargetRequest struct {
 	IntervalSec int64  `json:"intervalSec"`
 }
 
-type TrackingTargetRequest struct {
-	IsTracking bool `json:"isTracking"`
-}
-
 func (t *Transport) CreateTarget(w http.ResponseWriter, r *http.Request) {
 
 	var req CreateTargetRequest
@@ -55,7 +51,7 @@ func (t *Transport) CreateTarget(w http.ResponseWriter, r *http.Request) {
 	if req.IntervalSec == 0 {
 		req.IntervalSec = 60
 	}
-	if req.IntervalSec < 1 {
+	if req.IntervalSec < 1 || req.IntervalSec > 60 {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("interval is not less than 0"))
 		return
@@ -94,11 +90,6 @@ func (t *Transport) GetTarget(w http.ResponseWriter, r *http.Request) {
 func (t *Transport) UpdateTarget(w http.ResponseWriter, r *http.Request) {
 
 	idText := r.PathValue("id")
-	if idText == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("id is empty"))
-		return
-	}
 	id, err := strconv.ParseInt(idText, 10, 64)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -141,7 +132,7 @@ func (t *Transport) UpdateTarget(w http.ResponseWriter, r *http.Request) {
 	if req.IntervalSec == 0 {
 		req.IntervalSec = 60
 	}
-	if req.IntervalSec < 1 {
+	if req.IntervalSec < 1 || req.IntervalSec > 60 {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("interval is not less than 0"))
 		return
@@ -189,8 +180,8 @@ func (t *Transport) DeleteTarget(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err1 := t.red.DeleteTargetId(r.Context(), id)
-	if err1 != nil {
+	err = t.red.DeleteTargetId(r.Context(), id)
+	if err != nil {
 		if errors.Is(err, serviceErrors.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte(err.Error()))
@@ -206,11 +197,6 @@ func (t *Transport) DeleteTarget(w http.ResponseWriter, r *http.Request) {
 
 func (t *Transport) UpdateTracking(w http.ResponseWriter, r *http.Request) {
 	idText := r.PathValue("id")
-	if idText == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("id is empty"))
-		return
-	}
 	id, err := strconv.ParseInt(idText, 10, 64)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -223,14 +209,7 @@ func (t *Transport) UpdateTracking(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req TrackingTargetRequest
-	if errDecode := json.NewDecoder(r.Body).Decode(&req); errDecode != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(errDecode.Error()))
-		return
-	}
-
-	target, err := t.red.UpdateActiveTarget(r.Context(), id, req.IsTracking)
+	target, err := t.red.UpdateActiveTarget(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, serviceErrors.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -242,6 +221,7 @@ func (t *Transport) UpdateTracking(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(target)
 
