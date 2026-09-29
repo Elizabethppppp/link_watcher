@@ -4,49 +4,21 @@ import (
 	"encoding/json"
 	"link_watcher/errorResponse"
 	"link_watcher/serviceErrors"
+	"link_watcher/validation"
 	"net/http"
-	"net/url"
 	"strconv"
 )
 
-type TargetRequest struct {
-	Url         string `json:"url"`
-	IntervalSec int64  `json:"intervalSec"`
-}
-
-func validateTargetRequest(req *TargetRequest) error {
-	if req.Url == "" {
-		return serviceErrors.ErrEmptyURL
-	}
-
-	if len(req.Url) > 2048 {
-		return serviceErrors.ErrURLTooLarge
-	}
-
-	parsed, errParse := url.Parse(req.Url)
-	if errParse != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
-		return serviceErrors.ErrInvalidURL
-	}
-
-	if req.IntervalSec == 0 {
-		req.IntervalSec = 60
-	}
-	if req.IntervalSec < 1 || req.IntervalSec > 60 {
-		return serviceErrors.ErrInvalidInterval
-	}
-	return nil
-}
-
 func (t *Transport) CreateTarget(w http.ResponseWriter, r *http.Request) {
 
-	var req TargetRequest
+	var req validation.TargetRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrInvalidJSON)
 		return
 	}
 
-	err := validateTargetRequest(&req)
+	err := validation.ValidateTargetRequest(&req)
 	if err != nil {
 		errorResponse.ErrorResponseJSON(w, err)
 	}
@@ -83,14 +55,14 @@ func (t *Transport) UpdateTarget(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req TargetRequest
+	var req validation.TargetRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrInvalidJSON)
 		return
 	}
 
-	err = validateTargetRequest(&req)
+	err = validation.ValidateTargetRequest(&req)
 	if err != nil {
 		errorResponse.ErrorResponseJSON(w, err)
 	}

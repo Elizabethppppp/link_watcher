@@ -16,8 +16,13 @@ type DB struct {
 	Schema   string `yaml:"schema"`
 }
 
+type Checker struct {
+	TimeoutSec int `yaml:"timeoutSec"`
+}
+
 type Config struct {
-	DB DB `yaml:"db"`
+	DB      DB      `yaml:"db"`
+	Checker Checker `yaml:"checker"`
 
 	Logger struct {
 		Level  string `yaml:"level"`
@@ -60,6 +65,9 @@ func (c *Config) validate() error {
 	}
 	if c.DB.Schema == "" {
 		return fmt.Errorf("db.schema is required")
+	}
+	if c.Checker.TimeoutSec < 0 {
+		return fmt.Errorf("checker.timeoutSec must be positive")
 	}
 	if c.Logger.Level == "" {
 		c.Logger.Level = "info"

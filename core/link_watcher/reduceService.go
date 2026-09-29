@@ -23,22 +23,22 @@ func NewReduceService(repo TargetRepository) *ReduceService {
 	}
 }
 
-func (service *ReduceService) Create(ctx context.Context, url string, intervalSec int64) (model.Target, error) {
-	return service.repo.Insert(ctx, url, intervalSec)
+func (s *ReduceService) Create(ctx context.Context, url string, intervalSec int64) (model.Target, error) {
+	return s.repo.Insert(ctx, url, intervalSec)
 }
 
-func (service *ReduceService) GetTargets(ctx context.Context) ([]model.Target, error) {
-	return service.repo.GetAllTargets(ctx)
+func (s *ReduceService) GetTargets(ctx context.Context) ([]model.Target, error) {
+	return s.repo.GetAllTargets(ctx)
 }
 
-func (service *ReduceService) UpdateTargetId(ctx context.Context, id int64, url string, intervalSec int64) (model.Target, error) {
-	return service.repo.Update(ctx, id, url, intervalSec)
+func (s *ReduceService) UpdateTargetId(ctx context.Context, id int64, url string, intervalSec int64) (model.Target, error) {
+	return s.repo.Update(ctx, id, url, intervalSec)
 }
 
-func (service *ReduceService) DeleteTargetId(ctx context.Context, id int64) error {
-	return service.repo.Delete(ctx, id)
+func (s *ReduceService) DeleteTargetId(ctx context.Context, id int64) error {
+	return s.repo.Delete(ctx, id)
 }
 
-func (service *ReduceService) UpdateActiveTarget(ctx context.Context, id int64) (model.Target, error) {
-	return service.repo.UpdateActive(ctx, id)
+func (s *ReduceService) UpdateActiveTarget(ctx context.Context, id int64) (model.Target, error) {
+	return s.repo.UpdateActive(ctx, id)
 }
