@@ -74,11 +74,7 @@ func (t *Transport) UpdateTarget(w http.ResponseWriter, r *http.Request) {
 
 	idText := r.PathValue("id")
 	id, err := strconv.ParseInt(idText, 10, 64)
-	if err != nil {
-		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrInvalidId)
-		return
-	}
-	if id <= 0 {
+	if err != nil || id <= 0 {
 		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrInvalidId)
 		return
 	}
@@ -129,11 +125,7 @@ func (t *Transport) UpdateTarget(w http.ResponseWriter, r *http.Request) {
 func (t *Transport) DeleteTarget(w http.ResponseWriter, r *http.Request) {
 	idText := r.PathValue("id")
 	id, err := strconv.ParseInt(idText, 10, 64)
-	if err != nil {
-		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrInvalidId)
-		return
-	}
-	if id <= 0 {
+	if err != nil || id <= 0 {
 		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrInvalidId)
 		return
 	}
@@ -150,11 +142,7 @@ func (t *Transport) DeleteTarget(w http.ResponseWriter, r *http.Request) {
 func (t *Transport) UpdateTracking(w http.ResponseWriter, r *http.Request) {
 	idText := r.PathValue("id")
 	id, err := strconv.ParseInt(idText, 10, 64)
-	if err != nil {
-		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrInvalidId)
-		return
-	}
-	if id <= 0 {
+	if err != nil || id <= 0 {
 		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrInvalidId)
 		return
 	}

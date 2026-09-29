@@ -7,6 +7,6 @@ type Target struct {
 	Url         string    `json:"url"`
 	IsTracking  bool      `json:"isTracking"`
 	IntervalSec int64     `json:"intervalSec"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }

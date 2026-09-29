@@ -24,41 +24,21 @@ func NewReduceService(repo TargetRepository) *ReduceService {
 }
 
 func (service *ReduceService) Create(ctx context.Context, url string, intervalSec int64) (model.Target, error) {
-	tar, err := service.repo.Insert(ctx, url, intervalSec)
-	if err != nil {
-		return model.Target{}, err
-	}
-	return tar, nil
+	return service.repo.Insert(ctx, url, intervalSec)
 }
 
 func (service *ReduceService) GetTargets(ctx context.Context) ([]model.Target, error) {
-	targets, err := service.repo.GetAllTargets(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return targets, nil
+	return service.repo.GetAllTargets(ctx)
 }
 
 func (service *ReduceService) UpdateTargetId(ctx context.Context, id int64, url string, intervalSec int64) (model.Target, error) {
-	target, err := service.repo.Update(ctx, id, url, intervalSec)
-	if err != nil {
-		return model.Target{}, err
-	}
-	return target, nil
+	return service.repo.Update(ctx, id, url, intervalSec)
 }
 
 func (service *ReduceService) DeleteTargetId(ctx context.Context, id int64) error {
-	err := service.repo.Delete(ctx, id)
-	if err != nil {
-		return err
-	}
-	return nil
+	return service.repo.Delete(ctx, id)
 }
 
 func (service *ReduceService) UpdateActiveTarget(ctx context.Context, id int64) (model.Target, error) {
-	target, err := service.repo.UpdateActive(ctx, id)
-	if err != nil {
-		return model.Target{}, err
-	}
-	return target, nil
+	return service.repo.UpdateActive(ctx, id)
 }
