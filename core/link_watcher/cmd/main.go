@@ -2,9 +2,11 @@ package main
 
 import (
 	"link_watcher/config"
+	"link_watcher/core/link_watcher"
 	"link_watcher/db"
 	"link_watcher/logger"
 	"link_watcher/pgService"
+	transport "link_watcher/transport/http"
 	"net/http"
 )
 
@@ -39,8 +41,8 @@ func main() {
 	logger.Info("Connection successfully established", "host", cfg.DB.Host, "port", cfg.DB.Port)
 
 	pg := pgService.NewPgService(dbConn)
-	svc := NewReduceService(pg)
-	tp := NewTransport(svc)
+	svc := link_watcher.NewReduceService(pg)
+	tp := transport.NewTransport(svc)
 
 	handler := tp.Handler()
 

@@ -1,16 +1,17 @@
-package main
+package http
 
 import (
+	"link_watcher/core/link_watcher"
 	"link_watcher/middleware"
 	"net/http"
 )
 
 type Transport struct {
-	red           *ReduceService
+	red           *link_watcher.ReduceService
 	CreateTargets http.Handler
 }
 
-func NewTransport(red *ReduceService) *Transport {
+func NewTransport(red *link_watcher.ReduceService) *Transport {
 	return &Transport{
 		red: red,
 	}
