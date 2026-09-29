@@ -14,6 +14,29 @@ type TargetRequest struct {
 	IntervalSec int64  `json:"intervalSec"`
 }
 
+func validateTargetRequest(req *TargetRequest) error {
+	if req.Url == "" {
+		return serviceErrors.ErrEmptyURL
+	}
+
+	if len(req.Url) > 2048 {
+		return serviceErrors.ErrURLTooLarge
+	}
+
+	parsed, errParse := url.Parse(req.Url)
+	if errParse != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
+		return serviceErrors.ErrInvalidURL
+	}
+
+	if req.IntervalSec == 0 {
+		req.IntervalSec = 60
+	}
+	if req.IntervalSec < 1 || req.IntervalSec > 60 {
+		return serviceErrors.ErrInvalidInterval
+	}
+	return nil
+}
+
 func (t *Transport) CreateTarget(w http.ResponseWriter, r *http.Request) {
 
 	var req TargetRequest
@@ -23,28 +46,9 @@ func (t *Transport) CreateTarget(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Url == "" {
-		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrEmptyURL)
-		return
-	}
-
-	if len(req.Url) > 2048 {
-		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrURLTooLarge)
-		return
-	}
-
-	parsed, errParse := url.Parse(req.Url)
-	if errParse != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
-		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrInvalidURL)
-		return
-	}
-
-	if req.IntervalSec == 0 {
-		req.IntervalSec = 60
-	}
-	if req.IntervalSec < 1 || req.IntervalSec > 60 {
-		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrInvalidInterval)
-		return
+	err := validateTargetRequest(&req)
+	if err != nil {
+		errorResponse.ErrorResponseJSON(w, err)
 	}
 
 	target, err := t.red.Create(r.Context(), req.Url, req.IntervalSec)
@@ -86,28 +90,9 @@ func (t *Transport) UpdateTarget(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Url == "" {
-		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrEmptyURL)
-		return
-	}
-
-	if len(req.Url) > 2048 {
-		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrURLTooLarge)
-		return
-	}
-
-	parsed, err := url.Parse(req.Url)
-	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
-		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrInvalidURL)
-		return
-	}
-
-	if req.IntervalSec == 0 {
-		req.IntervalSec = 60
-	}
-	if req.IntervalSec < 1 || req.IntervalSec > 60 {
-		errorResponse.ErrorResponseJSON(w, serviceErrors.ErrInvalidInterval)
-		return
+	err = validateTargetRequest(&req)
+	if err != nil {
+		errorResponse.ErrorResponseJSON(w, err)
 	}
 
 	target, err := t.red.UpdateTargetId(r.Context(), id, req.Url, req.IntervalSec)
