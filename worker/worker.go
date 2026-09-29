@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"link_watcher/pgService"
 	"net/http"
 	"time"
 )
@@ -36,4 +37,9 @@ func (checker *Checker) Check(ctx context.Context, url string) (*int, *int, erro
 
 	statusCode := resp.StatusCode
 	return &statusCode, &latency, nil
+}
+
+func (checker *Checker) CheckSave(ctx context.Context, pg *pgService.PgService, targetId int64, url string) error {
+	statusCode, latency, _ := checker.Check(ctx, url)
+	return pg.InsertChecks(ctx, targetId, statusCode, latency)
 }
