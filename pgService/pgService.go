@@ -129,3 +129,13 @@ func (pg *PgService) UpdateActive(ctx context.Context, id int64) (model.Target, 
 	}
 	return target, nil
 }
+
+func (pg *PgService) InsertChecks(ctx context.Context, targetId int64, statusCode *int, latencyMs *int) error {
+	query := `INSERT INTO checks (target_id, status_code, latency_ms) values ($1, $2, $3)`
+
+	_, err := pg.db.ExecContext(ctx, query, targetId, statusCode, latencyMs)
+	if err != nil {
+		return serviceErrors.ErrInternal
+	}
+	return nil
+}
