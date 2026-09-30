@@ -2,7 +2,10 @@ package checker
 
 import (
 	"context"
+	"errors"
+	"log"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -24,16 +27,25 @@ func NewChecker(repo CheckerRepository, timeout time.Duration) *Checker {
 	}
 }
 
-func (c *Checker) Check(ctx context.Context, url string) (*int, *int, error) {
+func (c *Checker) Check(ctx context.Context, urlStr string) (*int, *int, error) {
 	start := time.Now()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlStr, http.NoBody)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	resp, err := c.client.Do(req)
 	if err != nil {
+		var urlErr *url.Error
+		switch {
+		case errors.As(err, &urlErr) && urlErr.Timeout():
+			log.Printf("timeout: %v", err)
+		case errors.Is(err, context.Canceled):
+			log.Printf("canceled: %v", err)
+		default:
+			log.Printf("error: %v", err)
+		}
 		return nil, nil, nil
 	}
 	defer resp.Body.Close()
