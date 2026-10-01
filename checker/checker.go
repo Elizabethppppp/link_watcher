@@ -3,7 +3,7 @@ package checker
 import (
 	"context"
 	"errors"
-	"log"
+	"link_watcher/logger"
 	"net/http"
 	"net/url"
 	"time"
@@ -40,11 +40,11 @@ func (c *Checker) Check(ctx context.Context, urlStr string) (*int, *int, error) 
 		var urlErr *url.Error
 		switch {
 		case errors.As(err, &urlErr) && urlErr.Timeout():
-			log.Printf("timeout: %v", err)
+			logger.Debug("Check timeout", "url", urlStr)
 		case errors.Is(err, context.Canceled):
-			log.Printf("canceled: %v", err)
+			logger.Debug("Check canceled", "url", urlStr)
 		default:
-			log.Printf("error: %v", err)
+			logger.Debug("Check network error", "url", urlStr, "error", err.Error())
 		}
 		return nil, nil, nil
 	}

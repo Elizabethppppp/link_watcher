@@ -2,8 +2,8 @@ package checker
 
 import (
 	"context"
+	"link_watcher/logger"
 	"link_watcher/model"
-	"log"
 	"time"
 
 	"errors"
@@ -49,7 +49,7 @@ func (s *Schedule) queue(ctx context.Context) {
 		if errors.Is(err, context.Canceled) {
 			return
 		}
-		log.Printf("schedule: get due targets: %v", err)
+		logger.Error("Schedule: failed to get targets", "error", err.Error())
 		return
 	}
 	for _, target := range targets {
@@ -58,7 +58,7 @@ func (s *Schedule) queue(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		default:
-			log.Printf("schedule: queue full, skip target %d", target.Id)
+			logger.Warn("Schedule: queue full, skipped target", "target_id", target.Id)
 		}
 	}
 }

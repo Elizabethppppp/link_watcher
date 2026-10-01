@@ -164,10 +164,7 @@ func (pg *PgService) GetTargetsIsTrackingNow(ctx context.Context) ([]model.Targe
 		err := rows.Scan(
 			&target.Id,
 			&target.Url,
-			&target.IsTracking,
-			&target.IntervalSec,
-			&target.CreatedAt,
-			&target.UpdatedAt)
+			&target.IntervalSec)
 		if err != nil {
 			return nil, serviceErrors.ErrInternal
 		}
