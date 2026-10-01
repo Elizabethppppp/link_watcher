@@ -141,9 +141,9 @@ func (pg *PgService) InsertChecks(ctx context.Context, targetId int64, statusCod
 }
 
 func (pg *PgService) GetTargetsIsTrackingNow(ctx context.Context) ([]model.Target, error) {
-	const query = `SELECT id, url, is_tracking ,interval_sec, created_at, updated_at 
-					FROM target 
-					LEFT JOIN LATERAL ( 
+	const query = `SELECT id, url ,interval_sec
+                FROM target 
+				LEFT JOIN LATERAL ( 
 					    SELECT MAX(checked_at) AS last_checked_at
 					    FROM checks
 					    WHERE target_id = target.id
