@@ -139,3 +139,42 @@ func (pg *PgService) InsertChecks(ctx context.Context, targetId int64, statusCod
 	}
 	return nil
 }
+
+func (pg *PgService) GetTargetsIsTrackingNow(ctx context.Context) ([]model.Target, error) {
+	const query = `SELECT id, url, is_tracking ,interval_sec, created_at, updated_at 
+					FROM target 
+					LEFT JOIN LATERAL ( 
+					    SELECT MAX(checked_at) AS last_checked_at
+					    FROM checks
+					    WHERE target_id = target.id
+					 ) AS last_check ON TRUE
+					where target.is_tracking=true
+					AND (
+					    last_check.last_checked_at IS NULL 
+					    OR last_check.last_checked_at + make_interval(secs => target.interval_sec) <= NOW()
+					)`
+	rows, err := pg.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, serviceErrors.ErrInternal
+	}
+	defer rows.Close()
+	targets := make([]model.Target, 0)
+	for rows.Next() {
+		var target model.Target
+		err := rows.Scan(
+			&target.Id,
+			&target.Url,
+			&target.IsTracking,
+			&target.IntervalSec,
+			&target.CreatedAt,
+			&target.UpdatedAt)
+		if err != nil {
+			return nil, serviceErrors.ErrInternal
+		}
+		targets = append(targets, target)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, serviceErrors.ErrInternal
+	}
+	return targets, nil
+}
