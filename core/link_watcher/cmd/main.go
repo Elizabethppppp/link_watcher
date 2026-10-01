@@ -56,7 +56,7 @@ func main() {
 	chk := checker.NewChecker(pg, timeout)
 
 	tasks := make(chan checker.Task, 1000)
-	sc := checker.NewSchedule(pg, tasks, 2*time.Second)
+	sc := checker.NewSchedule(pg, tasks, 1*time.Second)
 	go sc.Start(ctx)
 
 	go checker.RunChecker(ctx, chk, tasks, 50)
