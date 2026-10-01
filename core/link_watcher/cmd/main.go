@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"link_watcher/checker"
 	"link_watcher/config"
 	"link_watcher/core/link_watcher"
 	"link_watcher/db"
@@ -8,6 +10,7 @@ import (
 	"link_watcher/pgService"
 	transport "link_watcher/transport/http"
 	"net/http"
+	"time"
 )
 
 func main() {
@@ -45,6 +48,20 @@ func main() {
 	tp := transport.NewTransport(svc)
 
 	handler := tp.Handler()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	timeout := time.Duration(cfg.Checker.TimeoutSec) * time.Second
+	chk := checker.NewChecker(pg, timeout)
+
+	tasks := make(chan checker.Task, 1000)
+	sc := checker.NewSchedule(pg, tasks, 2*time.Second)
+	go sc.Start(ctx)
+
+	go checker.RunChecker(ctx, chk, tasks, 50)
+
+	logger.Info("Background process started", "goroutines", 50, "timeout_sec", cfg.Checker.TimeoutSec)
 
 	if err := http.ListenAndServe(":8090", handler); err != nil {
 		logger.Fatal("Server failed to start", "error", err.Error())
