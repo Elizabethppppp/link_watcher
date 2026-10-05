@@ -18,15 +18,17 @@ func RunChecker(ctx context.Context, r RunRepository, tasks <-chan Task, n int) 
 		go func(checkers int) {
 			defer wg.Done()
 
-			select {
-			case <-ctx.Done():
-				return
-			case task, ok := <-tasks:
-				if !ok {
+			for {
+				select {
+				case <-ctx.Done():
 					return
-				}
-				if err := r.CheckSave(ctx, task.Id, task.Url); err != nil {
-					logger.Error(err.Error())
+				case task, ok := <-tasks:
+					if !ok {
+						return
+					}
+					if err := r.CheckSave(ctx, task.Id, task.Url); err != nil {
+						logger.Error(err.Error())
+					}
 				}
 			}
 		}(i)

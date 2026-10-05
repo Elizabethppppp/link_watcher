@@ -8,7 +8,6 @@ import (
 	"link_watcher/serviceErrors"
 
 	"github.com/jackc/pgerrcode"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
@@ -83,7 +82,7 @@ func (pg *PgService) Update(ctx context.Context, id int64, url string, intervalS
 		&target.UpdatedAt,
 	)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return model.Target{}, serviceErrors.ErrNotFound
 		}
 		var pgerr *pgconn.PgError
@@ -122,7 +121,7 @@ func (pg *PgService) UpdateActive(ctx context.Context, id int64) (model.Target, 
 		&target.CreatedAt,
 		&target.UpdatedAt)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return model.Target{}, serviceErrors.ErrNotFound
 		}
 		return model.Target{}, serviceErrors.ErrInternal
