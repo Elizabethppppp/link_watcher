@@ -200,3 +200,27 @@ WHERE target_id = $1 AND checked_at >= NOW() - INTERVAL '1 day'`
 	return checks, nil
 
 }
+
+func (pg *PgService) GetSummary(ctx context.Context) (model.Summary, error) {
+	const query = `SELECT COUNT(*) AS total_checks,
+COUNT (*) FILTER (WHERE status_code BETWEEN 200 AND 299) AS success_checks,
+ROUND(100.0 * COUNT(*) FILTER (WHERE status_code BETWEEN 200 AND 299) / NULLIF(COUNT(*), 0), 2) AS success_rate,
+    AVG(latency_ms) FILTER (WHERE status_code BETWEEN 200 AND 299) AS avg_latency_ms,
+    MAX(checked_at) AS last_checked_at
+FROM checks
+WHERE checked_at >= NOW() - INTERVAL '1 day'`
+
+	var checks model.Summary
+
+	err := pg.db.QueryRowContext(ctx, query).Scan(
+		&checks.TotalChecks,
+		&checks.SuccessChecks,
+		&checks.SuccessRate,
+		&checks.AvgLatencyMs,
+		&checks.LastCheckedAt,
+	)
+	if err != nil {
+		return model.Summary{}, serviceErrors.ErrInternal
+	}
+	return checks, nil
+}

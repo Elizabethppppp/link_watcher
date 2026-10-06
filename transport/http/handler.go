@@ -134,3 +134,15 @@ func (t *Transport) GetTargetSummary(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(summary)
 }
+
+func (t *Transport) GetGlobalSummary(w http.ResponseWriter, r *http.Request) {
+	summary, err := t.red.GetTargetsSummary(r.Context())
+	if err != nil {
+		errorResponse.ErrorResponseJSON(w, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(summary)
+}

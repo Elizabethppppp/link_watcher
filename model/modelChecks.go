@@ -3,7 +3,7 @@ package model
 import "time"
 
 type Summary struct {
-	TargetId      int64      `json:"targetId"`
+	TargetId      int64      `json:"targetId,omitempty"`
 	TotalChecks   int64      `json:"totalChecks"`
 	SuccessChecks int64      `json:"successChecks"`
 	SuccessRate   float64    `json:"successRate"`
