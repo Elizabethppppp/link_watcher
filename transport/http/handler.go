@@ -21,6 +21,7 @@ func (t *Transport) CreateTarget(w http.ResponseWriter, r *http.Request) {
 	err := validation.ValidateTargetRequest(&req)
 	if err != nil {
 		errorResponse.ErrorResponseJSON(w, err)
+		return
 	}
 
 	target, err := t.red.Create(r.Context(), req.Url, req.IntervalSec)
@@ -65,6 +66,7 @@ func (t *Transport) UpdateTarget(w http.ResponseWriter, r *http.Request) {
 	err = validation.ValidateTargetRequest(&req)
 	if err != nil {
 		errorResponse.ErrorResponseJSON(w, err)
+		return
 	}
 
 	target, err := t.red.UpdateTargetId(r.Context(), id, req.Url, req.IntervalSec)

@@ -7,8 +7,7 @@ import (
 )
 
 type Transport struct {
-	red           *link_watcher.ReduceService
-	CreateTargets http.Handler
+	red *link_watcher.ReduceService
 }
 
 func NewTransport(red *link_watcher.ReduceService) *Transport {

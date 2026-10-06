@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"link_watcher/checker"
 	"link_watcher/config"
 	"link_watcher/core/link_watcher"
@@ -10,6 +11,10 @@ import (
 	"link_watcher/pgService"
 	transport "link_watcher/transport/http"
 	"net/http"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 	"time"
 )
 
@@ -57,14 +62,65 @@ func main() {
 
 	tasks := make(chan checker.Task, 1000)
 	sc := checker.NewSchedule(pg, tasks, 1*time.Second)
-	go sc.Start(ctx)
 
-	go checker.RunChecker(ctx, chk, tasks, 50)
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		sc.Start(ctx)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		checker.RunChecker(ctx, chk, tasks, 50)
+	}()
 
 	logger.Info("Background process started", "goroutines", 50, "timeout_sec", cfg.Checker.TimeoutSec)
 
-	if err := http.ListenAndServe(":8090", handler); err != nil {
-		logger.Fatal("Server failed to start", "error", err.Error())
+	srv := &http.Server{
+		Addr:    ":8090",
+		Handler: handler,
 	}
+
+	go func() {
+		logger.Info("Listening on port 8090", "port", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Fatal("Fail to start http server", "error", err.Error())
+		}
+	}()
+
+	sigCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	<-sigCtx.Done()
+	logger.Info("Shutdown signal received")
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer shutdownCancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		logger.Error("Fail to shutdown http server", "error", err.Error())
+	} else {
+		logger.Info("Server shutdown successfully")
+	}
+
+	cancel()
+
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		logger.Info("Background process finished")
+	case <-shutdownCtx.Done():
+		logger.Error("Background process timed out")
+	}
+
+	logger.Info("Shutdown complete")
 
 }
