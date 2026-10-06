@@ -182,7 +182,7 @@ ROUND(100.0 * COUNT(*) FILTER (WHERE status_code BETWEEN 200 AND 299) / NULLIF(C
     AVG(latency_ms) FILTER (WHERE status_code BETWEEN 200 AND 299) AS avg_latency_ms,
     MAX(checked_at) AS last_checked_at
 FROM checks
-WHERE target_id = $1 AND checked_at >= CURRENT_DATE`
+WHERE target_id = $1 AND checked_at >= NOW() - INTERVAL '1 day'`
 
 	var checks model.Summary
 	checks.TargetId = targetId
