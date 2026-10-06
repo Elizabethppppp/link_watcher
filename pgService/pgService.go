@@ -174,3 +174,29 @@ func (pg *PgService) GetTargetsIsTrackingNow(ctx context.Context) ([]model.Targe
 	}
 	return targets, nil
 }
+
+func (pg *PgService) GetCurrentSummary(ctx context.Context, targetId int64) (model.Summary, error) {
+	const query = `SELECT COUNT(*) AS total_checks,
+COUNT (*) FILTER (WHERE status_code BETWEEN 200 AND 299) AS success_checks,
+ROUND(100.0 * COUNT(*) FILTER (WHERE status_code BETWEEN 200 AND 299) / NULLIF(COUNT(*), 0), 2) AS success_rate,
+    AVG(latency_ms) FILTER (WHERE status_code BETWEEN 200 AND 299) AS avg_latency_ms,
+    MAX(checked_at) AS last_checked_at
+FROM checks
+WHERE target_id = $1 AND checked_at >= CURRENT_DATE`
+
+	var checks model.Summary
+	checks.TargetId = targetId
+
+	err := pg.db.QueryRowContext(ctx, query, targetId).Scan(
+		&checks.TotalChecks,
+		&checks.SuccessChecks,
+		&checks.SuccessRate,
+		&checks.AvgLatencyMs,
+		&checks.LastCheckedAt,
+	)
+	if err != nil {
+		return model.Summary{}, serviceErrors.ErrInternal
+	}
+	return checks, nil
+
+}

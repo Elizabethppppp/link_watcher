@@ -11,6 +11,7 @@ type TargetRepository interface {
 	Update(ctx context.Context, id int64, url string, intervalSec int64) (model.Target, error)
 	Delete(ctx context.Context, id int64) error
 	UpdateActive(ctx context.Context, id int64) (model.Target, error)
+	GetCurrentSummary(ctx context.Context, targetId int64) (model.Summary, error)
 }
 
 type ReduceService struct {
@@ -41,4 +42,8 @@ func (s *ReduceService) DeleteTargetId(ctx context.Context, id int64) error {
 
 func (s *ReduceService) UpdateActiveTarget(ctx context.Context, id int64) (model.Target, error) {
 	return s.repo.UpdateActive(ctx, id)
+}
+
+func (s *ReduceService) GetOneSummary(ctx context.Context, targetId int64) (model.Summary, error) {
+	return s.repo.GetCurrentSummary(ctx, targetId)
 }

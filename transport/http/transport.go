@@ -25,6 +25,7 @@ func (t *Transport) Handler() *http.ServeMux {
 	mux.Handle("PUT /targets/{id}", middleware.LoggerMiddleware(http.HandlerFunc(t.UpdateTarget)))
 	mux.Handle("DELETE /targets/{id}", middleware.LoggerMiddleware(http.HandlerFunc(t.DeleteTarget)))
 	mux.Handle("PATCH /targets/{id}/tracking", middleware.LoggerMiddleware(http.HandlerFunc(t.UpdateTracking)))
+	mux.Handle("GET /targets/{id}/summary", middleware.LoggerMiddleware(http.HandlerFunc(t.GetTargetSummary)))
 
 	return mux
 }
