@@ -69,6 +69,9 @@ func (c *Config) validate() error {
 	if c.Checker.TimeoutSec < 0 {
 		return fmt.Errorf("checker.timeoutSec must be positive")
 	}
+	if c.Checker.TimeoutSec == 0 {
+		c.Checker.TimeoutSec = 10
+	}
 	if c.Logger.Level == "" {
 		c.Logger.Level = "info"
 	}

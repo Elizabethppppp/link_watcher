@@ -25,12 +25,10 @@ func main() {
 		panic(err)
 	}
 
-	if err := logger.Init(logger.Config{
+	logger.Init(logger.Config{
 		Level:  cfg.Logger.Level,
 		Format: cfg.Logger.Format,
-	}); err != nil {
-		panic(err)
-	}
+	})
 	logger.Info("Config successfully parsed", "dbHost", cfg.DB.Host, "dbName", cfg.DB.DBName, "dbSchema", cfg.DB.Schema)
 
 	logger.Debug("Database conection", "host", cfg.DB.Host, "port", cfg.DB.Port, "dbName", cfg.DB.DBName)
@@ -62,6 +60,7 @@ func main() {
 
 	tasks := make(chan checker.Task, 1000)
 	sc := checker.NewSchedule(pg, tasks, 1*time.Second)
+	r := checker.NewRun(chk, tasks, 50)
 
 	var wg sync.WaitGroup
 
@@ -74,7 +73,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		checker.RunChecker(ctx, chk, tasks, 50)
+		r.RunChecker(ctx)
 	}()
 
 	logger.Info("Background process started", "goroutines", 50, "timeout_sec", cfg.Checker.TimeoutSec)
@@ -85,7 +84,7 @@ func main() {
 	}
 
 	go func() {
-		logger.Info("Listening on port 8090", "port", srv.Addr)
+		logger.Info("HTTP server listening on " + srv.Addr)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Fatal("Fail to start http server", "error", err.Error())
 		}
@@ -105,8 +104,6 @@ func main() {
 	} else {
 		logger.Info("Server shutdown successfully")
 	}
-
-	cancel()
 
 	done := make(chan struct{})
 	go func() {
