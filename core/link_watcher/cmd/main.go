@@ -53,7 +53,7 @@ func main() {
 	handler := tp.Handler()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	//defer cancel()
 
 	timeout := time.Duration(cfg.Checker.TimeoutSec) * time.Second
 	chk := checker.NewChecker(pg, timeout)
@@ -79,12 +79,12 @@ func main() {
 	logger.Info("Background process started", "goroutines", 50, "timeout_sec", cfg.Checker.TimeoutSec)
 
 	srv := &http.Server{
-		Addr:    ":8090",
+		Addr:    cfg.Server.Addr,
 		Handler: handler,
 	}
 
 	go func() {
-		logger.Info("HTTP server listening on " + srv.Addr)
+		logger.Info("HTTP server listening on " + cfg.Server.Addr)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Fatal("Fail to start http server", "error", err.Error())
 		}
@@ -95,6 +95,8 @@ func main() {
 
 	<-sigCtx.Done()
 	logger.Info("Shutdown signal received")
+
+	cancel()
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer shutdownCancel()

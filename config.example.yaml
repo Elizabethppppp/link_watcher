@@ -12,3 +12,6 @@ logger:
 
 checker:
   timeoutSec: 10
+
+server:
+  addr: ":8090"

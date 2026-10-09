@@ -28,7 +28,7 @@ func (r *Run) RunChecker(ctx context.Context) {
 	var wg sync.WaitGroup
 
 	wg.Add(r.workers)
-	for range r.tasks {
+	for range r.workers {
 
 		go func() {
 			defer wg.Done()

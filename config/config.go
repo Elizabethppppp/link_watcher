@@ -20,9 +20,14 @@ type Checker struct {
 	TimeoutSec int `yaml:"timeoutSec"`
 }
 
+type Server struct {
+	Addr string `yaml:"addr"`
+}
+
 type Config struct {
 	DB      DB      `yaml:"db"`
 	Checker Checker `yaml:"checker"`
+	Server  Server  `yaml:"server"`
 
 	Logger struct {
 		Level  string `yaml:"level"`
@@ -78,5 +83,9 @@ func (c *Config) validate() error {
 	if c.Logger.Format == "" {
 		c.Logger.Format = "json"
 	}
+	if c.Server.Addr == "" {
+		c.Server.Addr = ":8090"
+	}
+
 	return nil
 }
