@@ -44,6 +44,9 @@ func (s *Schedule) Start(ctx context.Context) {
 }
 
 func (s *Schedule) queue(ctx context.Context) {
+	if ctx.Err() != nil {
+		return
+	}
 	targets, err := s.repo.GetTargetsIsTrackingNow(ctx)
 	if err != nil {
 		if errors.Is(err, context.Canceled) {

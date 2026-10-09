@@ -41,6 +41,9 @@ func (r *Run) RunChecker(ctx context.Context) {
 					if !ok {
 						return
 					}
+					if ctx.Err() != nil {
+						return
+					}
 					if err := r.saver.CheckSave(ctx, task.Id, task.Url); err != nil {
 						logger.Error("check save failed", "error", err.Error(), "targetId", task.Id, "url", task.Url)
 					}

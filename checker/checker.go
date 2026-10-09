@@ -55,6 +55,9 @@ func (c *Checker) Check(ctx context.Context, urlStr string) (*int, *int, error) 
 }
 
 func (c *Checker) CheckSave(ctx context.Context, targetId int64, url string) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
 	statusCode, latency, _ := c.Check(ctx, url)
 	return c.repo.InsertChecks(ctx, targetId, statusCode, latency)
 }

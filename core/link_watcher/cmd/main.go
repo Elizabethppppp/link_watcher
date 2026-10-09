@@ -49,11 +49,10 @@ func main() {
 	pg := pgService.NewPgService(dbConn)
 	svc := link_watcher.NewReduceService(pg)
 	tp := transport.NewTransport(svc)
-
 	handler := tp.Handler()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	//defer cancel()
+	defer cancel()
 
 	timeout := time.Duration(cfg.Checker.TimeoutSec) * time.Second
 	chk := checker.NewChecker(pg, timeout)
@@ -64,17 +63,13 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		sc.Start(ctx)
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		r.RunChecker(ctx)
-	}()
+	})
 
 	logger.Info("Background process started", "goroutines", 50, "timeout_sec", cfg.Checker.TimeoutSec)
 
