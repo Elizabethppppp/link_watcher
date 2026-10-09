@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"link_watcher/checker"
 	"link_watcher/config"
 	"link_watcher/core/link_watcher"
@@ -81,7 +82,7 @@ func main() {
 	go func() {
 		logger.Info("HTTP server listening on " + cfg.Server.Addr)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Fatal("Fail to start http server", "error", err.Error())
+			panic(fmt.Sprintf("Fail to start http server: %v", err))
 		}
 	}()
 
