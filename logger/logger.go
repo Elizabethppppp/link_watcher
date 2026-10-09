@@ -62,5 +62,5 @@ func Debug(msg string, v ...any) {
 
 func Fatal(msg string, v ...any) {
 	slog.Error(msg, v...)
-	panic(msg)
+	os.Exit(1)
 }
